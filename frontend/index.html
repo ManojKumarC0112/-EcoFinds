@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFinds - Sustainable Second-Hand Marketplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/landing.css" />
+    <style>
+        .navbar-brand { font-weight: bold; color: #198754 !important; }
+        .cart-badge { background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px; }
+        .product-card { transition: transform 0.2s; }
+        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .hero-section { background: linear-gradient(135deg, #198754, #20c997); color: white; padding: 60px 0; }
+        .category-btn { border-radius: 25px; margin: 5px; }
+        .search-section { background: #f8f9fa; padding: 30px 0; }
+        
+        /* List View Styles */
+        #product-grid.list-view {
+            flex-direction: column;
+        }
+        #product-grid.list-view > div {
+            width: 100% !important;
+            max-width: none;
+        }
+        #product-grid.list-view .product-card {
+            display: flex;
+            flex-direction: row;
+            height: auto;
+        }
+        #product-grid.list-view .product-image {
+            width: 200px;
+            height: 200px;
+            flex-shrink: 0;
+        }
+        #product-grid.list-view .product-image img {
+            height: 100%;
+            object-fit: cover;
+        }
+        #product-grid.list-view .product-info {
+            flex: 1;
+            padding: 1rem;
+        }
+        #product-grid.list-view .product-footer {
+            margin-top: auto;
+        }
+
+        /* Profile Dropdown Styles */
+        .profile-dropdown {
+            min-width: 220px !important;
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            padding: 0 !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #1e5631;
+        }
+
+        .profile-icon {
+            font-size: 1.5rem;
+        }
+
+        .profile-dropdown .dropdown-item {
+            padding: 0.75rem 1rem !important;
+            color: #2c3e50 !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.75rem !important;
+        }
+
+        .profile-dropdown .dropdown-item i {
+            width: 18px;
+            font-size: 1rem;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .profile-dropdown .dropdown-item:hover {
+            background: linear-gradient(135deg, #2e8b57, #28a745) !important;
+            color: white !important;
+            transform: translateX(3px) !important;
+        }
+
+        .profile-dropdown .dropdown-item:hover i {
+            color: white !important;
+        }
+
+        .logout-item {
+            color: #dc3545 !important;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .logout-item:hover {
+            background: linear-gradient(135deg, #dc3545, #c82333) !important;
+            color: white !important;
+        }
+
+        .logout-item i {
+            color: #dc3545 !important;
+        }
+
+        .logout-item:hover i {
+            color: white !important;
+        }
+
+        .profile-dropdown .dropdown-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+            color: #1e5631 !important;
+            padding: 1rem !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 12px 12px 0 0 !important;
+        }
+
+        /* Filter and Sort Section Styles */
+        .filter-sort-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-sort-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .categories-section {
+            text-align: center;
+        }
+
+        .filter-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e5631;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .categories-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .category-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(248, 249, 250, 0.8);
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 120px;
+            position: relative;
+        }
+
+        .category-btn:hover {
+            background: rgba(46, 139, 87, 0.1);
+            border-color: #2e8b57;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 139, 87, 0.2);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, #1e5631, #2e8b57);
+            color: white;
+            border-color: #1e5631;
+        }
+
+        .category-btn i {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #2e8b57;
+        }
+
+        .category-btn.active i {
+            color: white;
+        }
+
+        .category-btn span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .category-count {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            font-weight: 500;
+        }
+
+        .sort-filter-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .controls-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .results-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .results-count {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e5631;
+        }
+
+        .current-filter {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .filter-label i {
+            color: #2e8b57;
+            font-size: 0.9rem;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #2e8b57;
+            box-shadow: 0 0 0 0.2rem rgba(46, 139, 87, 0.1);
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 2px;
+            border: 1px solid #e9ecef;
+        }
+
+        .view-btn {
+            padding: 0.5rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .view-btn.active {
+            background: #2e8b57;
+            color: white;
+            box-shadow: 0 2px 4px rgba(46, 139, 87, 0.3);
+        }
+
+        .view-btn:hover:not(.active) {
+            background: rgba(46, 139, 87, 0.1);
+            color: #2e8b57;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .categories-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+            
+            .sort-filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.5rem;
+            }
+            
+            .controls-left,
+            .controls-right {
+                justify-content: space-between;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .categories-grid {
+                justify-content: center;
+                gap: 0.5rem;
+            }
+            
+            .category-btn {
+                min-width: 80px;
+                padding: 0.75rem 1rem;
+            }
+            
+            .category-btn i {
+                font-size: 1.5rem;
+            }
+            
+            .category-btn span {
+                font-size: 0.8rem;
+            }
+            
+            .controls-right {
+                gap: 1rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+            
+            .filter-group {
+                flex-shrink: 0;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .filter-sort-container {
+                gap: 1.5rem;
+            }
+            
+            .categories-grid {
+                gap: 0.5rem;
+            }
+            
+            .category-btn {
+                min-width: 70px;
+                padding: 0.5rem 0.75rem;
+            }
+            
+            .controls-right {
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+            }
+            
+            .filter-select {
+                min-width: 120px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="landing.html">
+            <i class="bi bi-recycle"></i> EcoFinds
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="landing.html">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="seller.html">Sell Item</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <form class="d-flex me-3" role="search" onsubmit="searchProducts(); return false;">
+                        <input class="form-control" type="search" placeholder="Search..." aria-label="Search" id="nav-search">
+                        <button class="btn btn-outline-success ms-1" type="submit"><i class="bi bi-search"></i></button>
+                    </form>
+                </li>
+                <li class="nav-item position-relative">
+                    <a class="nav-link active" href="cart.html">
+                        <i class="bi bi-cart3"></i> Cart
+                        <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="chat.html">Chat</a>
+                </li>
+               
+                <!-- Profile Dropdown (shown when not logged in) -->
+                <li class="nav-item dropdown" id="authProfile">
+                    <a class="nav-link active dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person"></i> Profile
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end profile-dropdown">
+                        <li class="dropdown-header">
+                            <div class="profile-header">
+                                <i class="bi bi-person-circle profile-icon"></i>
+                                <strong>My Account</strong>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="login.html">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Login</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="signup.html">
+                                <i class="bi bi-person-plus"></i>
+                                <span>Sign Up</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <!-- User Menu (shown when logged in) -->
+                <li class="nav-item dropdown user-menu" id="userMenu" style="display: none;">
+                    <a class="nav-link dropdown-toggle user-profile-link" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar">
+                            <i class="bi bi-person-circle"></i>
+                        </div>
+                        <div class="user-info">
+                            <span class="username" id="username">User</span>
+                            <small class="user-role" id="userRole">Member</small>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end user-dropdown">
+                        <li class="dropdown-header">
+                            <div class="user-header-info">
+                                <div class="user-avatar-large">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
+                                <div>
+                                    <strong id="dropdownUsername">User</strong>
+                                    <br>
+                                    <small class="text-muted" id="dropdownUserEmail">user@email.com</small>
+                                </div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="profile.html" id="profile-link">
+                                <i class="bi bi-person"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="my-listings.html" id="my-listings-link">
+                                <i class="bi bi-list-ul"></i> My Listings
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="purchases.html" id="purchases-link">
+                                <i class="bi bi-bag-check"></i> My Purchases
+                            </a>
+                        </li>
+                       <li>
+                            <a class="dropdown-item logout-link" href="#" onclick="logout()">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main>
+  <!-- Banner with slider -->
+  <section class="banner" aria-label="Image slider banner">
+    <div class="slides" id="slides">
+      <div class="slide slide1" role="img" aria-label="Banner image 1">
+          <div class="slide-content">
+              <h1>Welcome to EcoFinds</h1>
+              <p>Sustainable Second-Hand Marketplace</p>
+          </div>
+      </div>
+      <div class="slide slide2" role="img" aria-label="Banner image 2">
+          <div class="slide-content">
+              <h1>Find Great Deals</h1>
+              <p>Pre-owned items at amazing prices</p>
+          </div>
+      </div>
+      <div class="slide slide3" role="img" aria-label="Banner image 3">
+          <div class="slide-content">
+              <h1>Sell Your Items</h1>
+              <p>Turn your unused items into cash</p>
+          </div>
+      </div>
+    </div>
+    <div class="banner-controls">
+      <button aria-label="Previous Slide" id="prev-slide">❮</button>
+      <button aria-label="Next Slide" id="next-slide">❯</button>
+    </div>
+  </section>
+
+  <!-- Filter and Sort Section -->
+  <section class="filter-sort-section py-4">
+    <div class="container">
+      <div class="filter-sort-container">
+        <!-- Categories Section -->
+        <div class="categories-section">
+          <h3 class="filter-title">
+            <i class="bi bi-grid-3x3-gap"></i>
+            Categories
+          </h3>
+          <div class="categories-grid">
+            <button class="category-btn active" data-category="all" onclick="filterByCategory('all')">
+              <i class="bi bi-grid"></i>
+              <span>All Items</span>
+              <div class="category-count" id="category-all-count">0</div>
+            </button>
+            <button class="category-btn" data-category="electronics" onclick="filterByCategory('electronics')">
+              <i class="bi bi-laptop"></i>
+              <span>Electronics</span>
+              <div class="category-count" id="category-electronics-count">0</div>
+            </button>
+            <button class="category-btn" data-category="fashion" onclick="filterByCategory('fashion')">
+              <i class="bi bi-bag"></i>
+              <span>Fashion</span>
+              <div class="category-count" id="category-fashion-count">0</div>
+            </button>
+            <button class="category-btn" data-category="home" onclick="filterByCategory('home')">
+              <i class="bi bi-house"></i>
+              <span>Home & Garden</span>
+              <div class="category-count" id="category-home-count">0</div>
+            </button>
+            <button class="category-btn" data-category="sports" onclick="filterByCategory('sports')">
+              <i class="bi bi-bicycle"></i>
+              <span>Sports</span>
+              <div class="category-count" id="category-sports-count">0</div>
+            </button>
+            <button class="category-btn" data-category="books" onclick="filterByCategory('books')">
+              <i class="bi bi-book"></i>
+              <span>Books</span>
+              <div class="category-count" id="category-books-count">0</div>
+            </button>
+            <button class="category-btn" data-category="furniture" onclick="filterByCategory('furniture')">
+              <i class="bi bi-cabinet"></i>
+              <span>Furniture</span>
+              <div class="category-count" id="category-furniture-count">0</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sort and Filter Controls -->
+        <div class="sort-filter-controls">
+          <div class="controls-left">
+            <div class="results-info">
+              <span class="results-count" id="resultsCount">Loading...</span>
+              <span class="current-filter" id="currentFilter">All Categories</span>
+            </div>
+          </div>
+          
+          <div class="controls-right">
+            <!-- Price Range Filter -->
+            <div class="filter-group">
+              <label for="priceRange" class="filter-label">
+                <i class="bi bi-currency-dollar"></i>
+                Price Range
+              </label>
+              <select class="filter-select" id="priceRange" onchange="filterByPrice()">
+                <option value="all">Any Price</option>
+                <option value="0-50">$0 - $50</option>
+                <option value="50-100">$50 - $100</option>
+                <option value="100-200">$100 - $200</option>
+                <option value="200-500">$200 - $500</option>
+                <option value="500+">$500+</option>
+              </select>
+            </div>
+
+            <!-- Condition Filter -->
+            <div class="filter-group">
+              <label for="conditionFilter" class="filter-label">
+                <i class="bi bi-shield-check"></i>
+                Condition
+              </label>
+              <select class="filter-select" id="conditionFilter" onchange="filterByCondition()">
+                <option value="all">Any Condition</option>
+                <option value="excellent">Excellent</option>
+                <option value="good">Good</option>
+                <option value="fair">Fair</option>
+                <option value="poor">For Parts</option>
+              </select>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-group">
+              <label for="sortBy" class="filter-label">
+                <i class="bi bi-sort-down"></i>
+                Sort By
+              </label>
+              <select class="filter-select" id="sortBy" onchange="sortProducts()">
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="popularity">Most Popular</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="view-toggle">
+              <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid View">
+                <i class="bi bi-grid-3x3-gap"></i>
+              </button>
+              <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List View">
+                <i class="bi bi-list"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="products-section py-5">
+    <div class="container">
+      <div class="section-header text-center mb-5">
+        <h2 class="section-title">Featured Products</h2>
+        <p class="section-subtitle">Discover amazing pre-owned items from our community</p>
+      </div>
+      
+      <div class="row g-4" id="product-grid">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-5">
+        <button class="btn btn-primary-custom btn-lg" onclick="viewAllProducts()">
+          View All Products <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <nav aria-label="Footer navigation">
+      <a href="login.html" id="footer-login">Login</a>
+      <a href="signup.html" id="footer-signup">Sign Up</a>
+      <a href="cart.html" id="footer-cart">My Cart</a>
+      <a href="profile.html" id="footer-profile">Profile</a>
+      <a href="chat.html" id="footer-chat">Chat</a>
+    </nav>
+    <p>&copy; 2025 EcoFinds Sustainable Marketplace</p>
+  </div>
+</footer>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/landing.js"></script>
+<script src="js/common.js"></script>
+<script>
+    let currentCategory = 'all';
+    let currentView = 'grid';
+
+    async function loadProducts() {
+        const searchQuery = document.getElementById('nav-search').value || '';
+        const category = currentCategory !== 'all' ? currentCategory : '';
+        const priceRange = document.getElementById('priceRange').value;
+        const condition = document.getElementById('conditionFilter').value;
+        const sortBy = document.getElementById('sortBy').value;
+
+        try {
+            let url = '/products';
+            const params = new URLSearchParams();
+            if (searchQuery) params.set('q', searchQuery);
+            if (category) params.set('category', category.charAt(0).toUpperCase() + category.slice(1));
+            if (priceRange && priceRange !== 'all') params.set('price_range', priceRange);
+            if (condition && condition !== 'all') params.set('condition', condition);
+            if (sortBy) params.set('sort', sortBy);
+            if (params.toString()) url += '?' + params.toString();
+
+            const data = await apiCall(url);
+            displayProducts(data.results);
+            updateCategoryCounts(data.results);
+            document.getElementById('resultsCount').textContent = `${data.results.length} items found`;
+        } catch (error) {
+            showToast('Error loading products', 'error');
+        }
+    }
+
+    function updateCategoryCounts(products) {
+        const counts = {
+            all: products.length,
+            electronics: 0,
+            fashion: 0,
+            home: 0,
+            sports: 0,
+            books: 0,
+            furniture: 0
+        };
+
+        products.forEach(product => {
+            const category = product.category.toLowerCase();
+            if (counts.hasOwnProperty(category)) {
+                counts[category]++;
+            }
+        });
+
+        for (const [category, count] of Object.entries(counts)) {
+            const element = document.getElementById(`category-${category}-count`);
+            if (element) element.textContent = count;
+        }
+    }
+
+    function displayProducts(products) {
+        const grid = document.getElementById('product-grid');
+        
+        if (!products.length) {
+            grid.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="bi bi-search display-1 text-muted"></i>
+                    <h4 class="text-muted mt-3">No products found</h4>
+                    <p class="text-muted">Try adjusting your search or browse all categories</p>
+                </div>
+            `;
+            return;
+        }
+
+        grid.innerHTML = products.map(product => `
+            <div class="col-lg-3 col-md-6 col-sm-6">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="${product.image_url || 'https://via.placeholder.com/400'}" alt="${product.title}" class="card-img">
+                        ${product.badge ? `<div class="product-badge ${product.badge.toLowerCase()}">${product.badge}</div>` : ''}
+                        <div class="product-overlay">
+                            <button class="btn-overlay" onclick="viewProduct(${product.id})">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn-overlay" onclick="addToCart(${product.id})">
+                                <i class="bi bi-cart-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${product.category}</div>
+                        <h3 class="product-title">${product.title}</h3>
+                        <p class="product-description">${product.description || 'No description available'}</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                <span class="current-price">$${product.price}</span>
+                                ${product.original_price ? `<span class="original-price">$${product.original_price}</span>` : ''}
+                            </div>
+                            <div class="product-rating">
+                                <i class="bi bi-star-fill"></i>
+                                <span>${product.rating || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function addToCart(productId) {
+        if (!getCurrentUser()) {
+            showToast('Please login to add items to cart', 'warning');
+            return;
+        }
+
+        try {
+            await apiCall('/cart/add', {
+                method: 'POST',
+                body: JSON.stringify({
+                    user_id: getCurrentUser().id,
+                    product_id: productId
+                })
+            });
+            showToast('Added to cart!', 'success');
+            updateCartBadge();
+        } catch (error) {
+            if (error.message.includes('already in cart')) {
+                showToast('Item already in cart', 'info');
+            } else {
+                showToast('Error adding to cart', 'error');
+            }
+        }
+    }
+
+    function viewProduct(productId) {
+        window.location.href = `product.html?id=${productId}`;
+    }
+
+    function filterByCategory(category) {
+        currentCategory = category;
+        
+        // Update active category button
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-category="${category}"]`).classList.add('active');
+        
+        // Update current filter display
+        const categoryNames = {
+            'all': 'All Categories',
+            'electronics': 'Electronics',
+            'fashion': 'Fashion',
+            'home': 'Home & Garden',
+            'sports': 'Sports',
+            'books': 'Books',
+            'furniture': 'Furniture'
+        };
+        
+        document.getElementById('currentFilter').textContent = categoryNames[category];
+        
+        loadProducts();
+    }
+
+    function filterByPrice() {
+        loadProducts();
+    }
+
+    function filterByCondition() {
+        loadProducts();
+    }
+
+    function sortProducts() {
+        loadProducts();
+    }
+
+    function setView(view) {
+        currentView = view;
+        
+        // Update view buttons
+        document.querySelectorAll('.view-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(view + 'ViewBtn').classList.add('active');
+        
+        // Update product grid layout
+        const productGrid = document.getElementById('product-grid');
+        if (view === 'list') {
+            productGrid.classList.add('list-view');
+        } else {
+            productGrid.classList.remove('list-view');
+        }
+    }
+
+    function searchProducts() {
+        loadProducts();
+    }
+
+    function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            // Clear any stored user data
+            localStorage.removeItem('user_data');
+            sessionStorage.clear();
+            
+            // Redirect to login page
+            window.location.href = 'login.html';
+            
+            // Optional: Show logout message
+            showToast('You have been logged out successfully!', 'success');
+        }
+    }
+
+    function viewAllProducts() {
+        // Clear filters and load all products
+        document.getElementById('nav-search').value = '';
+        document.getElementById('priceRange').value = 'all';
+        document.getElementById('conditionFilter').value = 'all';
+        document.getElementById('sortBy').value = 'newest';
+        filterByCategory('all');
+    }
+
+    function initializePage() {
+        const user = getCurrentUser();
+        if (user) {
+            document.getElementById('authProfile').style.display = 'none';
+            document.getElementById('userMenu').style.display = 'block';
+            document.getElementById('username').textContent = user.username || 'User';
+            document.getElementById('userRole').textContent = user.role || 'Member';
+            document.getElementById('dropdownUsername').textContent = user.username || 'User';
+            document.getElementById('dropdownUserEmail').textContent = user.email || 'user@email.com';
+            updateCartBadge();
+        } else {
+            document.getElementById('authProfile').style.display = 'block';
+            document.getElementById('userMenu').style.display = 'none';
+        }
+    }
+
+    async function updateCartBadge() {
+        const user = getCurrentUser();
+        if (!user) return;
+
+        try {
+            const cart = await apiCall(`/cart?user_id=${user.id}`);
+            const itemCount = cart.items.length;
+            const badge = document.getElementById('cartBadge');
+            badge.textContent = itemCount;
+            badge.style.display = itemCount > 0 ? 'inline' : 'none';
+        } catch (error) {
+            console.error('Error updating cart badge:', error);
+        }
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePage();
+        loadProducts();
+    });
+</script>
+
+</body>
+</html>

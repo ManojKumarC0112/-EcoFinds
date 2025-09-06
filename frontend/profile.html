@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - EcoFinds</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    .navbar-brand {
+      font-weight: bold;
+      color: #198754 !important;
+    }
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: #6c757d;
+    }
+    .profile-card {
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">
+        <i class="bi bi-recycle"></i> EcoFinds
+      </a>
+      <div class="ms-auto">
+        <a class="nav-link d-inline" href="cart.html">
+          <i class="bi bi-cart3"></i> Cart
+          <span id="cartBadge" class="badge bg-danger" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Profile Content -->
+  <div class="container py-4">
+    <div class="row g-4">
+      <!-- Profile Sidebar -->
+      <div class="col-lg-4">
+        <div class="card profile-card shadow-sm">
+          <div class="card-body text-center">
+            <div class="avatar mx-auto mb-3" id="avatar">U</div>
+            <h5 id="profName">User</h5>
+            <div class="text-muted small" id="profEmail">email@example.com</div>
+            <hr>
+            <div class="text-start">
+              <label class="form-label">Username</label>
+              <input class="form-control form-control-sm" id="usernameInput" placeholder="Update username">
+              <button class="btn btn-success btn-sm mt-2" onclick="saveProfile()">Save</button>
+              <button class="btn btn-outline-secondary btn-sm mt-2" onclick="logout()">Logout</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action" href="my-listings.html">
+              <i class="bi bi-box-seam me-2"></i> My Listings
+            </a>
+            <a class="list-group-item list-group-item-action" href="purchases.html">
+              <i class="bi bi-bag-check me-2"></i> My Purchases
+            </a>
+            <a class="list-group-item list-group-item-action" href="add-product.html">
+              <i class="bi bi-plus-circle me-2"></i> Add Product
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Purchases Section -->
+      <div class="col-lg-8">
+        <div class="card shadow-sm">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Recent Purchases</span>
+            <a href="purchases.html" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+          <div class="card-body" id="recentPurchases">
+            <div class="text-center text-muted">No purchases yet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/common.js"></script>
+  <script>
+    async function loadProfile() {
+      const u = getCurrentUser();
+      if (!u) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('profEmail').textContent = u.email;
+      document.getElementById('profName').textContent = u.username || u.email.split('@');
+      document.getElementById('usernameInput').value = u.username || '';
+      document.getElementById('avatar').textContent = (u.username || u.email).toUpperCase();
+
+      updateCartBadge();
+
+      try {
+        const d = await apiCall(`/purchases?user_id=${u.id}`);
+        renderPurchases(d.results);
+      } catch (e) {
+        /* ignore */
+      }
+    }
+
+    function renderPurchases(items) {
+      const box = document.getElementById('recentPurchases');
+      if (!items.length) {
+        box.innerHTML = '<div class="text-center text-muted">No purchases yet</div>';
+        return;
+      }
+
+      box.innerHTML = items.slice(0, 5).map(x => `
+        <div class='d-flex align-items-center border-bottom py-2'>
+          <img src='${x.image_url}' 
+               style='width:64px;height:64px;object-fit:cover;border-radius:8px;cursor:pointer' 
+               onclick='openProduct(${x.product_id})'>
+          <div class='ms-3'>
+            <div class='fw-semibold'>${x.title}</div>
+            <small class='text-muted'>$${x.price} - ${new Date(x.purchased_at).toLocaleString()}</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveProfile() {
+      const u = getCurrentUser();
+      if (!u) return;
+
+      const name = document.getElementById('usernameInput').value.trim();
+      try {
+        const d = await apiCall('/user/update', {
+          method: 'POST',
+          body: JSON.stringify({ user_id: u.id, username: name })
+        });
+        setCurrentUser(d.user);
+        showToast('Profile updated', 'success');
+        loadProfile();
+      } catch (e) {
+        showToast('Update failed', 'error');
+      }
+    }
+
+    function openProduct(id) {
+      window.location.href = `product.html?id=${id}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProfile);
+  </script>
+</body>
+</html>
