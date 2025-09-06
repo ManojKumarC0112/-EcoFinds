@@ -1,0 +1,478 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EcoFinds Demo - Test Page</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            .status-box { min-height: 100px; background: #f8f9fa; }
+            .user-info { background: #e3f2fd; padding: 10px; border-radius: 5px; }
+            .product-card { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+            .cart-badge { background: #dc3545; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid py-3">
+            <div class="row">
+                <!-- Left Column: Auth & User Info -->
+                <div class="col-md-4">
+                    <h3>🌱 EcoFinds Demo</h3>
+                    
+                    <!-- User Status -->
+                    <div id="userStatus" class="user-info mb-3">
+                        <strong>Status:</strong> Not logged in
+                        <div>Cart: <span id="cartCount" class="cart-badge">0</span> items</div>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <div class="card mb-3">
+                        <div class="card-header">Register</div>
+                        <div class="card-body">
+                            <form id="registerForm">
+                                <div class="mb-2">
+                                    <input type="email" id="regEmail" class="form-control form-control-sm" placeholder="Email" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="password" id="regPassword" class="form-control form-control-sm" placeholder="Password (min 6)" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="text" id="regUsername" class="form-control form-control-sm" placeholder="Username">
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Register</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div class="card mb-3">
+                        <div class="card-header">Login</div>
+                        <div class="card-body">
+                            <form id="loginForm">
+                                <div class="mb-2">
+                                    <input type="email" id="loginEmail" class="form-control form-control-sm" placeholder="Email" required>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="password" id="loginPassword" class="form-control form-control-sm" placeholder="Password" required>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm">Login</button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="quickLogin()">Demo Login</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Profile Update -->
+                    <div class="card mb-3">
+                        <div class="card-header">Update Profile</div>
+                        <div class="card-body">
+                            <form id="profileForm">
+                                <div class="mb-2">
+                                    <input type="text" id="newUsername" class="form-control form-control-sm" placeholder="New username">
+                                </div>
+                                <button type="submit" class="btn btn-info btn-sm">Update</button>
+                                <button type="button" class="btn btn-warning btn-sm" onclick="logout()">Logout</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Add Product -->
+                    <div class="card mb-3">
+                        <div class="card-header">Add Product</div>
+                        <div class="card-body">
+                            <form id="addProductForm">
+                                <div class="mb-2">
+                                    <input type="text" id="productTitle" class="form-control form-control-sm" placeholder="Product Title" required>
+                                </div>
+                                <div class="mb-2">
+                                    <select id="productCategory" class="form-select form-select-sm" required>
+                                        <option value="">Select Category</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Books">Books</option>
+                                        <option value="Furniture">Furniture</option>
+                                        <option value="Sports">Sports</option>
+                                        <option value="Home">Home</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <input type="number" id="productPrice" class="form-control form-control-sm" placeholder="Price" step="0.01" required>
+                                </div>
+                                <div class="mb-2">
+                                    <textarea id="productDesc" class="form-control form-control-sm" placeholder="Description" rows="2"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">Add Product</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Products & Actions -->
+                <div class="col-md-8">
+                    <!-- Search & Filter -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search products...">
+                                </div>
+                                <div class="col-md-4">
+                                    <select id="categoryFilter" class="form-select form-select-sm">
+                                        <option value="">All Categories</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Books">Books</option>
+                                        <option value="Furniture">Furniture</option>
+                                        <option value="Sports">Sports</option>
+                                        <option value="Home">Home</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="loadProducts()">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mb-3">
+                        <button class="btn btn-success btn-sm" onclick="loadCart()">View Cart</button>
+                        <button class="btn btn-info btn-sm" onclick="purchaseCart()">Purchase All</button>
+                        <button class="btn btn-secondary btn-sm" onclick="loadPurchases()">My Purchases</button>
+                        <button class="btn btn-outline-danger btn-sm" onclick="clearResults()">Clear</button>
+                    </div>
+
+                    <!-- Results Area -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <span>Results</span>
+                            <span id="resultCount">0 items</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="results" class="status-box">Ready to test! Try logging in with demo@ecofinds.com / demo123</div>
+                        </div>
+                    </div>
+
+                    <!-- Status Messages -->
+                    <div class="mt-3">
+                        <div id="messages"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API_BASE = 'http://localhost:5000';
+            let currentUser = null;
+
+            // Utility functions
+            function showMessage(text, type = 'info') {
+                const msg = document.createElement('div');
+                msg.className = `alert alert-${type} alert-dismissible fade show`;
+                msg.innerHTML = `${text} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                document.getElementById('messages').appendChild(msg);
+                setTimeout(() => msg.remove(), 5000);
+            }
+
+            function updateUserStatus() {
+                const status = document.getElementById('userStatus');
+                if (currentUser) {
+                    status.innerHTML = `<strong>Logged in:</strong> ${currentUser.username || currentUser.email} (ID: ${currentUser.id})<br>Cart: <span id="cartCount" class="cart-badge">0</span> items`;
+                    updateCartCount();
+                } else {
+                    status.innerHTML = 'Status: Not logged in<br>Cart: <span id="cartCount" class="cart-badge">0</span> items';
+                }
+            }
+
+            async function apiCall(endpoint, options = {}) {
+                try {
+                    const response = await fetch(`${API_BASE}${endpoint}`, {
+                        headers: { 'Content-Type': 'application/json', ...options.headers },
+                        ...options
+                    });
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.error || `HTTP ${response.status}`);
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'danger');
+                    throw error;
+                }
+            }
+
+            // Auth functions
+            document.getElementById('registerForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const data = await apiCall('/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value,
+                        username: document.getElementById('regUsername').value
+                    })
+                });
+                currentUser = data.user;
+                updateUserStatus();
+                showMessage('Registration successful!', 'success');
+                document.getElementById('registerForm').reset();
+            };
+
+            document.getElementById('loginForm').onsubmit = async (e) => {
+                e.preventDefault();
+                const data = await apiCall('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value
+                    })
+                });
+                currentUser = data.user;
+                updateUserStatus();
+                showMessage('Login successful!', 'success');
+                document.getElementById('loginForm').reset();
+            };
+
+            function quickLogin() {
+                document.getElementById('loginEmail').value = 'demo@ecofinds.com';
+                document.getElementById('loginPassword').value = 'demo123';
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+
+            document.getElementById('profileForm').onsubmit = async (e) => {
+                e.preventDefault();
+                if (!currentUser) return showMessage('Please login first', 'warning');
+                
+                const data = await apiCall('/user/update', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        username: document.getElementById('newUsername').value
+                    })
+                });
+                currentUser = data.user;
+                updateUserStatus();
+                showMessage('Profile updated!', 'success');
+                document.getElementById('newUsername').value = '';
+            };
+
+            function logout() {
+                currentUser = null;
+                updateUserStatus();
+                showMessage('Logged out', 'info');
+            }
+
+            // Product functions
+            document.getElementById('addProductForm').onsubmit = async (e) => {
+                e.preventDefault();
+                if (!currentUser) return showMessage('Please login first', 'warning');
+
+                await apiCall('/products', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        owner_id: currentUser.id,
+                        title: document.getElementById('productTitle').value,
+                        category: document.getElementById('productCategory').value,
+                        price: parseFloat(document.getElementById('productPrice').value),
+                        description: document.getElementById('productDesc').value
+                    })
+                });
+                
+                showMessage('Product added!', 'success');
+                document.getElementById('addProductForm').reset();
+                loadProducts();
+            };
+
+            async function loadProducts() {
+                const q = document.getElementById('searchInput').value;
+                const category = document.getElementById('categoryFilter').value;
+                
+                let url = '/products';
+                const params = new URLSearchParams();
+                if (q) params.set('q', q);
+                if (category) params.set('category', category);
+                if (params.toString()) url += '?' + params.toString();
+
+                const data = await apiCall(url);
+                displayProducts(data.results);
+            }
+
+            function displayProducts(products) {
+                const results = document.getElementById('results');
+                const count = document.getElementById('resultCount');
+                count.textContent = `${products.length} items`;
+
+                if (!products.length) {
+                    results.innerHTML = '<p class="text-muted">No products found</p>';
+                    return;
+                }
+
+                results.innerHTML = products.map(p => `
+                    <div class="product-card">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <img src="${p.image_url}" class="img-fluid rounded" alt="Product">
+                            </div>
+                            <div class="col-md-7">
+                                <h6>${p.title}</h6>
+                                <small class="text-muted">Category: ${p.category} | Owner ID: ${p.owner_id}</small>
+                                <div class="fw-bold text-success">$${p.price}</div>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <button class="btn btn-primary btn-sm" onclick="addToCart(${p.id})">Add to Cart</button>
+                                <button class="btn btn-info btn-sm" onclick="viewProduct(${p.id})">Details</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async function viewProduct(id) {
+                const data = await apiCall(`/products/${id}`);
+                const p = data.product;
+                
+                document.getElementById('results').innerHTML = `
+                    <div class="product-card">
+                        <h4>${p.title}</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img src="${p.image_url}" class="img-fluid rounded" alt="Product">
+                            </div>
+                            <div class="col-md-8">
+                                <p><strong>Category:</strong> ${p.category}</p>
+                                <p><strong>Price:</strong> $${p.price}</p>
+                                <p><strong>Description:</strong> ${p.description || 'No description'}</p>
+                                <p><strong>Owner ID:</strong> ${p.owner_id}</p>
+                                <button class="btn btn-primary" onclick="addToCart(${p.id})">Add to Cart</button>
+                                <button class="btn btn-secondary" onclick="loadProducts()">Back to List</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            async function addToCart(productId) {
+                if (!currentUser) return showMessage('Please login first', 'warning');
+
+                await apiCall('/cart/add', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        product_id: productId
+                    })
+                });
+
+                showMessage('Added to cart!', 'success');
+                updateCartCount();
+            }
+
+            async function updateCartCount() {
+                if (!currentUser) return;
+                
+                try {
+                    const data = await apiCall(`/cart?user_id=${currentUser.id}`);
+                    document.getElementById('cartCount').textContent = data.results.length;
+                } catch (error) {
+                    // Ignore errors for cart count
+                }
+            }
+
+            async function loadCart() {
+                if (!currentUser) return showMessage('Please login first', 'warning');
+
+                const data = await apiCall(`/cart?user_id=${currentUser.id}`);
+                const results = document.getElementById('results');
+                const count = document.getElementById('resultCount');
+                
+                count.textContent = `Cart: ${data.results.length} items`;
+
+                if (!data.results.length) {
+                    results.innerHTML = '<p class="text-muted">Your cart is empty</p>';
+                    return;
+                }
+
+                results.innerHTML = `
+                    <h5>Your Cart</h5>
+                    ${data.results.map(item => `
+                        <div class="product-card">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img src="${item.image_url}" class="img-fluid rounded" alt="Product">
+                                </div>
+                                <div class="col-md-8">
+                                    <h6>${item.title}</h6>
+                                    <div class="fw-bold text-success">$${item.price}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <div class="mt-3">
+                        <button class="btn btn-success" onclick="purchaseCart()">Purchase All Items</button>
+                    </div>
+                `;
+            }
+
+            async function purchaseCart() {
+                if (!currentUser) return showMessage('Please login first', 'warning');
+
+                await apiCall('/purchase', {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: currentUser.id })
+                });
+
+                showMessage('Purchase successful!', 'success');
+                updateCartCount();
+                loadPurchases();
+            }
+
+            async function loadPurchases() {
+                if (!currentUser) return showMessage('Please login first', 'warning');
+
+                const data = await apiCall(`/purchases?user_id=${currentUser.id}`);
+                const results = document.getElementById('results');
+                const count = document.getElementById('resultCount');
+                
+                count.textContent = `Purchases: ${data.results.length} items`;
+
+                if (!data.results.length) {
+                    results.innerHTML = '<p class="text-muted">No previous purchases</p>';
+                    return;
+                }
+
+                results.innerHTML = `
+                    <h5>Your Purchase History</h5>
+                    ${data.results.map(item => `
+                        <div class="product-card">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <img src="${item.image_url}" class="img-fluid rounded" alt="Product">
+                                </div>
+                                <div class="col-md-8">
+                                    <h6>${item.title}</h6>
+                                    <div class="fw-bold text-success">$${item.price}</div>
+                                    <small class="text-muted">Purchased: ${new Date(item.purchased_at).toLocaleString()}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            function clearResults() {
+                document.getElementById('results').innerHTML = '<p class="text-muted">Results cleared</p>';
+                document.getElementById('resultCount').textContent = '0 items';
+            }
+
+            // Initialize
+            loadProducts();
+            
+            // Test connection on load
+            apiCall('/health').then(() => {
+                showMessage('✅ Connected to EcoFinds backend!', 'success');
+            }).catch(() => {
+                showMessage('❌ Cannot connect to backend. Make sure server is running on localhost:5000', 'danger');
+            });
+        </script>
+    </body>
+    </html>
