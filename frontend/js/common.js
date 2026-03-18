@@ -1,4 +1,4 @@
-// EcoFinds Common JavaScript Utilities
+// EcoFinds Common JavaScript Utilities (v2 - Secure & Modern)
 const API_BASE = 'http://localhost:5000';
 
 // ============================================================
@@ -7,17 +7,31 @@ const API_BASE = 'http://localhost:5000';
 
 async function apiCall(endpoint, options = {}) {
     try {
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers 
+        };
+        
+        // Attach JWT Token if available
+        const token = localStorage.getItem('ecofinds_token');
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${API_BASE}${endpoint}`, {
-            headers: { 
-                'Content-Type': 'application/json',
-                ...options.headers 
-            },
-            ...options
+            ...options,
+            headers
         });
         
         const data = await response.json();
         
         if (!response.ok) {
+            // Handle global 401 Unauthorized securely
+            if (response.status === 401 && !endpoint.includes('/auth/')) {
+                logout(false);
+                showToast('Session expired. Please log in again.', 'warning');
+                setTimeout(() => window.location.href = 'auth.html', 2000);
+            }
             throw new Error(data.error || `HTTP ${response.status}`);
         }
         
@@ -37,27 +51,21 @@ function getCurrentUser() {
         const userData = localStorage.getItem('ecofinds_user');
         return userData ? JSON.parse(userData) : null;
     } catch (error) {
-        console.error('Error getting user data:', error);
         return null;
     }
 }
 
-function setCurrentUser(user) {
-    try {
-        localStorage.setItem('ecofinds_user', JSON.stringify(user));
-    } catch (error) {
-        console.error('Error setting user data:', error);
-    }
+function setCurrentUser(user, token) {
+    localStorage.setItem('ecofinds_user', JSON.stringify(user));
+    if (token) localStorage.setItem('ecofinds_token', token);
 }
 
-function clearCurrentUser() {
+function logout(redirect = true) {
     localStorage.removeItem('ecofinds_user');
-}
-
-function logout() {
-    clearCurrentUser();
-    showToast('Logged out successfully', 'info');
-    window.location.href = 'login.html';
+    localStorage.removeItem('ecofinds_token');
+    if (redirect) {
+        window.location.href = 'index.html';
+    }
 }
 
 // ============================================================
@@ -65,8 +73,14 @@ function logout() {
 // ============================================================
 
 function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toastContainer');
-    if (!toastContainer) return;
+    let toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
 
     const toastId = 'toast_' + Date.now();
     const bgClass = {
@@ -76,41 +90,30 @@ function showToast(message, type = 'info') {
         'info': 'bg-info'
     }[type] || 'bg-info';
 
-    const textClass = type === 'warning' ? 'text-dark' : 'text-white';
+    const icon = {
+        'success': 'check-circle-fill',
+        'error': 'exclamation-triangle-fill',
+        'warning': 'exclamation-triangle-fill',
+        'info': 'info-circle-fill'
+    }[type];
 
     const toastHTML = `
-        <div class="toast ${bgClass} ${textClass}" role="alert" id="${toastId}">
-            <div class="toast-header ${bgClass} ${textClass} border-0">
-                <i class="bi bi-${getToastIcon(type)} me-2"></i>
-                <strong class="me-auto">EcoFinds</strong>
-                <button type="button" class="btn-close ${textClass === 'text-dark' ? '' : 'btn-close-white'}" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
+        <div class="toast align-items-center text-white ${bgClass} border-0 shadow-lg mb-2" role="alert" id="${toastId}">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi bi-${icon} me-2 fs-5"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
             </div>
         </div>
     `;
 
     toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-    
     const toastElement = document.getElementById(toastId);
-    const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 5000 });
+    const toast = new bootstrap.Toast(toastElement, { autohide: true, delay: 4000 });
     toast.show();
-
-    // Clean up after toast is hidden
-    toastElement.addEventListener('hidden.bs.toast', function () {
-        toastElement.remove();
-    });
-}
-
-function getToastIcon(type) {
-    const icons = {
-        'success': 'check-circle-fill',
-        'error': 'exclamation-triangle-fill',
-        'warning': 'exclamation-triangle-fill',
-        'info': 'info-circle-fill'
-    };
-    return icons[type] || 'info-circle-fill';
+    toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
 }
 
 // ============================================================
@@ -120,9 +123,6 @@ function getToastIcon(type) {
 function initializePage() {
     updateNavigation();
     updateCartBadge();
-    
-    // Test backend connection
-    testConnection();
 }
 
 function updateNavigation() {
@@ -134,10 +134,7 @@ function updateNavigation() {
     if (user && userMenu && authButtons) {
         userMenu.style.display = 'block';
         authButtons.style.display = 'none';
-        
-        if (usernameSpan) {
-            usernameSpan.textContent = user.username || user.email.split('@')[0];
-        }
+        if (usernameSpan) usernameSpan.textContent = user.username;
     } else if (userMenu && authButtons) {
         userMenu.style.display = 'none';
         authButtons.style.display = 'block';
@@ -147,90 +144,38 @@ function updateNavigation() {
 async function updateCartBadge() {
     const user = getCurrentUser();
     const cartBadge = document.getElementById('cartBadge');
-    
     if (!user || !cartBadge) return;
 
     try {
-        const data = await apiCall(`/cart?user_id=${user.id}`);
+        const data = await apiCall('/cart/');
         const count = data.results.length;
-        
         if (count > 0) {
             cartBadge.textContent = count;
             cartBadge.style.display = 'inline-block';
         } else {
             cartBadge.style.display = 'none';
         }
-    } catch (error) {
-        // Silently fail for cart badge updates
+    } catch (e) {
         cartBadge.style.display = 'none';
     }
 }
 
 // ============================================================
-// BACKEND CONNECTION
-// ============================================================
-
-async function testConnection() {
-    try {
-        await apiCall('/health');
-        console.log('✅ Backend connection successful');
-    } catch (error) {
-        console.error('❌ Backend connection failed:', error);
-        showToast('Unable to connect to server. Please ensure the backend is running.', 'error');
-    }
-}
-
-// ============================================================
-// FORM UTILITIES
-// ============================================================
-
-function validateEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-function validatePassword(password) {
-    return password && password.length >= 6;
-}
-
-function formatPrice(price) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-    }).format(price);
-}
-
-function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// ============================================================
-// PRODUCT UTILITIES
+// GLOBAL ACTIONS
 // ============================================================
 
 async function addToCartGlobal(productId) {
-    const user = getCurrentUser();
-    
-    if (!user) {
+    if (!getCurrentUser()) {
         showToast('Please login to add items to cart', 'warning');
+        setTimeout(() => window.location.href = 'auth.html', 1500);
         return false;
     }
 
     try {
         await apiCall('/cart/add', {
             method: 'POST',
-            body: JSON.stringify({
-                user_id: user.id,
-                product_id: productId
-            })
+            body: JSON.stringify({ product_id: productId })
         });
-        
         showToast('Added to cart!', 'success');
         updateCartBadge();
         return true;
@@ -244,89 +189,14 @@ async function addToCartGlobal(productId) {
     }
 }
 
-// ============================================================
-// SEARCH UTILITIES
-// ============================================================
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// ============================================================
-// LOCAL STORAGE UTILITIES
-// ============================================================
-
-function getFromStorage(key, defaultValue = null) {
-    try {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : defaultValue;
-    } catch (error) {
-        console.error('Error reading from storage:', error);
-        return defaultValue;
-    }
-}
-
-function setToStorage(key, value) {
-    try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-    } catch (error) {
-        console.error('Error writing to storage:', error);
-        return false;
-    }
-}
-
-// ============================================================
-// ERROR HANDLING
-// ============================================================
-
-window.addEventListener('error', function(event) {
-    console.error('Global error:', event.error);
-});
-
-window.addEventListener('unhandledrejection', function(event) {
-    console.error('Unhandled promise rejection:', event.reason);
-    event.preventDefault();
-});
-
-// ============================================================
-// INITIALIZATION
-// ============================================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-initialize common functionality
-    console.log('EcoFinds common utilities loaded');
-    
-    // Add global click handler for add to cart buttons
-    document.addEventListener('click', function(e) {
-        if (e.target.matches('[data-add-to-cart]')) {
-            const productId = e.target.getAttribute('data-add-to-cart');
-            addToCartGlobal(parseInt(productId));
+document.addEventListener('DOMContentLoaded', () => {
+    initializePage();
+    document.addEventListener('click', e => {
+        if (e.target.closest('[data-add-to-cart]')) {
+            const btn = e.target.closest('[data-add-to-cart]');
+            addToCartGlobal(parseInt(btn.getAttribute('data-add-to-cart')));
         }
     });
 });
 
-// Export for use in other scripts
-window.EcoFinds = {
-    apiCall,
-    getCurrentUser,
-    setCurrentUser,
-    clearCurrentUser,
-    logout,
-    showToast,
-    updateCartBadge,
-    addToCartGlobal,
-    formatPrice,
-    formatDate,
-    validateEmail,
-    validatePassword,
-    debounce
-};
+window.EcoFinds = { apiCall, getCurrentUser, setCurrentUser, logout, showToast, addToCartGlobal, updateCartBadge };

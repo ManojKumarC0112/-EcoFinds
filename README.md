@@ -1,119 +1,39 @@
-README.md
+# EcoFinds V2 – The Resume Optimised Sustainable Marketplace
 
-EcoFinds – Sustainable Marketplace EcoFinds is a two-part web application that helps people buy and sell pre‑owned items with a focus on sustainability and circular economy.
+Welcome to EcoFinds V2, radically overhauled for production readiness, smooth UX, and impressive architectural patterns.
 
-Project structure frontend/ – static UI (landing, listings, chat support, cart, profile) built with HTML/CSS/JS
+## Major V2 Improvements (Resume Ready)
 
-backend/ – API/server (auth, products, cart, orders) and database integration
+1. **Security & Authentication (JWT + OTP)**
+   - Replaced basic user ID passing with a robust JWT bearer token system.
+   - Introduced a seamless, unified OTP login/signup flow (`auth.html`).
 
-Key features Listings and categories
+2. **Clean Flask Blueprints Architecture**
+   - Refactored the monolithic `app.py` into a highly scalable Flask Application Factory pattern.
+   - Data domains are properly separated: `routes/auth.py`, `routes/products.py`, `routes/orders.py`, `routes/cart.py`, and `routes/analytics.py`.
+   - Complex `SQLAlchemy` relationships handle Cascades, orders, items, products, multiple images per product, and reviews.
 
-Cart, promos, and checkout UI
+3. **"Wow Factor" Data Engineering**
+   - **Seller Analytics**: Implemented a comprehensive Chart.js dashboard measuring Seller Time-Series Revenue, Sales, and active listing counts based on dynamic data via SQL outer JOIN queries.
+   - **Carbon CO₂ Footprint Tracker**: Order payloads calculate and aggregate CO2 metric savings for every pre-owned checkout automatically dynamically generating user impact pages.
+   - **Scikit-Learn Recommendations (AI)**: Preserved and isolated the TF-IDF Cosine Similarity recommendation feature.
+   
+4. **Modern UI/UX Aesthetics**
+   - Completely revamped `index.html` with deep CSS micro-interactions: Skeleton loading placeholders, UI Glassmorphism, Floating CO2 Badges, Hover states, and beautiful toast orchestrations.
+   - Designed a multiple-image swipeable Carousel feature for Product specific deep-dives integrating interactive Review panels.
 
-Profile and settings (photo upload, visibility, notifications)
+## How to Run
 
-My Listings management (grid/list views, filters, stats)
+### Single Command Start (Recommended)
+You can run the entire full-stack application (both backend and frontend simultaneously) using the provided Python runner script. It will automatically start the servers, seed the database, and open the EcoFinds website in your default browser:
 
-Support chat with quick replies, voice input, emoji picker
+```bash
+cd backend_folder # (or the project root where run.py is located)
+pip install -r requirements.txt
+python run.py
+```
 
-Client-side notifications and polished UI (Bootstrap-based)
-
-Tech stack Frontend: HTML, CSS (Bootstrap), Vanilla JS
-
-Backend: YOUR_BACKEND_STACK (e.g., Node/Express, Django, etc.)
-
-Build/Tools: N/A or YOUR_BUILD_TOOLS
-
-Auth: YOUR_AUTH (e.g., JWT/OAuth/session)
-
-DB: YOUR_DB (e.g., PostgreSQL/MySQL/MongoDB)
-
-Getting started Prerequisites Node.js vXX (if applicable)
-
-Python 3.XX (if applicable)
-
-YOUR_DB installed and running
-
-Git
-
-Clone git clone https://github.com/USERNAME/REPO.git cd REPO
-
-Frontend (static) Open frontend/ index.html in a browser or serve with a lightweight server:
-
-Python: cd frontend && python -m http.server 5173
-
-Node: npx http-server ./frontend -p 5173
-
-Backend cd backend
-create & activate venv or install packages for Node: npm install npm run dev for Python: pip install -r requirements.txt uvicorn app:app --reload Configure environment variables in backend/.env (create it if missing):
-
-DATABASE_URL=
-
-JWT_SECRET=
-
-OTHER_KEYS=
-
-API base URL Set the frontend to point to the backend API (if needed):
-Update frontend config or JS files where API base URL is referenced.
-
-Environment variables Create .env files (never commit secrets):
-
-backend/.env
-
-frontend/.env (if applicable)
-
-Common vars:
-
-DATABASE_URL=your-connection-string
-
-JWT_SECRET=your-secret
-
-API_BASE_URL=http://localhost:8000
-
-Scripts (examples) Frontend:
-
-Serve: npx http-server ./frontend -p 5173
-
-Backend (Node example):
-
-Install: npm install
-
-Dev: npm run dev
-
-Prod: npm start
-
-Backend (Python example):
-
-Install: pip install -r requirements.txt
-
-Dev: uvicorn app:app --reload
-
-API (examples) GET /products
-
-GET /products/:id
-
-PATCH /products/:id { "image_url": "https://..." }
-
-DELETE /products/:id
-
-POST /auth/login
-
-Testing YOUR_TEST_INSTRUCTIONS (e.g., pytest / jest)
-
-Contributing Fork the repo
-
-Create feature branch: git checkout -b feat/your-feature
-
-Commit: git commit -m "feat: describe"
-
-Push: git push origin feat/your-feature
-
-Open a Pull Request
-
-License Choose a license at https://choosealicense.com/ and add LICENSE.
-
-Acknowledgements Bootstrap icons & styles
-
-Any libraries/CDNs used
-
-Image sources (Unsplash or others)
+### Manual Start (Alternative)
+If you prefer to start them separately:
+1. **Backend**: `python app.py`
+2. **Frontend**: `npx http-server ./frontend -p 5173`

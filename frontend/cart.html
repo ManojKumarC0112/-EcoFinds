@@ -1,55 +1,200 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0"/> <title>Shopping Cart - EcoFinds</title> <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/> <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet"/> <style> .navbar-brand { font-weight: bold; color: #198754 !important; } .cart-badge { background:#dc3545; color:#fff; border-radius:50%; padding:2px 6px; font-size:10px; position:absolute; top:-5px; right:-5px; } .cart-item { border-bottom:1px solid #dee2e6; padding:1rem 0; } .cart-item:last-child { border-bottom:none; } .product-image { width:80px; height:80px; object-fit:cover; border-radius:8px; cursor:pointer; } .qty-btn { width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; } .cart-summary { background:#f8f9fa; border-radius:8px; padding:1.5rem; } .btn-purchase { background:#198754; border-color:#198754; font-size:1.05rem; padding:10px 24px; } </style> </head> <body> <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm"> <div class="container"> <a class="navbar-brand" href="index.html"><i class="bi bi-recycle"></i> EcoFinds</a> <div class="ms-auto position-relative"> <a class="nav-link" href="cart.html"><i class="bi bi-cart3"></i> Cart <span id="cartBadge" class="cart-badge" style="display:none">0</span></a> </div> </div> </nav> <div class="container py-4"> <div class="d-flex align-items-center justify-content-between mb-3"> <h3 class="mb-0"><i class="bi bi-cart3 me-2"></i>Shopping Cart</h3> <a href="index.html" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Continue Shopping</a> </div>
-text
-<div class="row">
-  <div class="col-lg-8">
-    <div class="card">
-      <div class="card-body" id="cartArea">
-        <div class="text-center py-5" id="loading">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="text-muted mt-2 mb-0">Loading your cart…</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFinds - Your Cart</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --eco-green: #059669; --bg: #f9fafb; --surface: #ffffff; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); padding-top: 90px; }
+        
+        .navbar { background: rgba(255, 255, 255, 0.9)!important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .navbar-brand { font-weight: 700; color: var(--eco-green) !important; font-size: 1.5rem; }
+        
+        .cart-item-card { background: var(--surface); border: none; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 15px; overflow: hidden; }
+        .cart-item-img { width: 120px; height: 120px; object-fit: cover; }
+        
+        .summary-card { background: var(--surface); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); position: sticky; top: 110px; }
+        
+        .co2-banner { background: linear-gradient(135deg, rgba(5,150,105,0.1), rgba(16,185,129,0.05)); border: 1px dashed rgba(5,150,105,0.4); border-radius: 16px; padding: 15px; text-align: center; }
+        
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <i class="bi bi-arrow-left me-2 text-dark fs-4"></i> <span class="d-none d-md-inline text-dark fs-5 fw-medium">Continue Shopping</span>
+            </a>
         </div>
-        <div id="emptyState" class="text-center py-5" style="display:none;">
-          <i class="bi bi-cart-x display-1"></i>
-          <h5 class="mt-3">Your cart is empty</h5>
-          <p class="text-muted mb-3">Add items from the listings page.</p>
-          <a href="index.html" class="btn btn-primary"><i class="bi bi-shop"></i> Browse Products</a>
+    </nav>
+
+    <div class="container py-4">
+        <h2 class="fw-bold mb-4">Your Eco Cart</h2>
+
+        <div class="row g-4 d-none" id="cartContent">
+            <div class="col-lg-8" id="cartItemsList">
+                <!-- Cart items load here -->
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="summary-card border-0">
+                    <h5 class="fw-bold mb-4">Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-3 text-muted">
+                        <span>Items (<span id="itemCount">0</span>)</span>
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                    
+                    <div class="co2-banner mb-4">
+                        <i class="bi bi-tree-fill text-success fs-4 mb-2 d-block"></i>
+                        <span class="text-dark fw-medium small d-block">This order will save approx.</span>
+                        <h4 class="text-success fw-bold my-1" id="co2Total">0 kg CO₂</h4>
+                    </div>
+
+                    <hr class="mb-4 opacity-10">
+
+                    <div class="d-flex justify-content-between mb-4">
+                        <span class="fs-5 fw-bold">Total</span>
+                        <span class="fs-4 fw-bold text-dark" id="total">$0.00</span>
+                    </div>
+                    
+                    <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" id="btnCheckout" onclick="proceedToCheckout()">
+                        Secure Checkout <i class="bi bi-lock-fill ms-1"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div id="items"></div>
-      </div>
-    </div>
-  </div>
 
-  <div class="col-lg-4">
-    <div class="cart-summary" id="summary" style="display:none;">
-      <h5 class="mb-3">Order Summary</h5>
-      <div class="d-flex justify-content-between mb-2">
-        <span>Items (<span id="sumQty">0</span>)</span>
-        <span id="sumSubtotal">$0.00</span>
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span>Shipping</span>
-        <span class="text-success">FREE</span>
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span>Tax (8%)</span>
-        <span id="sumTax">$0.00</span>
-      </div>
-      <hr/>
-      <div class="d-flex justify-content-between">
-        <strong>Total</strong>
-        <strong id="sumTotal">$0.00</strong>
-      </div>
-      <button class="btn btn-purchase w-100 mt-3" onclick="purchaseAll()" id="purchaseBtn"><i class="bi bi-credit-card"></i> Purchase All</button>
-      <button class="btn btn-outline-danger w-100 mt-2" onclick="clearCart()"><i class="bi bi-trash"></i> Clear Cart</button>
+        <div id="emptyCart" class="text-center py-5 d-none">
+            <div class="d-flex justify-content-center mb-4">
+                <div class="bg-white p-4 rounded-circle shadow-sm">
+                    <i class="bi bi-cart-x text-muted" style="font-size: 4rem;"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold text-dark mb-3">Your cart is empty</h3>
+            <p class="text-muted mb-4">Looks like you haven't added any sustainable treasures yet.</p>
+            <a href="index.html" class="btn btn-dark rounded-pill px-5 py-3 fw-bold shadow">Start Exploring</a>
+        </div>
+        
+        <div id="loadingCart" class="text-center py-5">
+            <div class="spinner-border text-success" role="status"></div>
+        </div>
     </div>
 
-    <div class="card mt-4" id="impact" style="display:none;">
-      <div class="card-body text-center">
-        <i class="bi bi-tree text-success display-6"></i>
-        <h6 class="mt-2">Environmental Impact</h6>
-        <p class="small text-muted mb-0">Buying second-hand reduces waste and carbon footprint. Thank you!</p>
-      </div>
-    </div>
-  </div>
-</div>
-</div> <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> <script src="js/common.js"></script> <script> let rawCart = []; let grouped = {}; let indexByProduct = {}; function groupCart(items) { const map = {}; for (const it of items) { const key = it.product_id; if (!map[key]) map[key] = { product_id: it.product_id, title: it.title, price: parseFloat(it.price), image_url: it.image_url, qty: 0 }; map[key].qty += 1; } return map; } function buildIndex(items){ const map = {}; for (const it of items) { if (!map[it.product_id]) map[it.product_id] = []; map[it.product_id].push(it.cart_item_id); } return map; } async function loadCart() { const u = getCurrentUser(); if (!u) { window.location.href = 'login.html'; return; } try { const d = await apiCall(`/cart?user_id=${u.id}`); rawCart = d.results || []; indexByProduct = buildIndex(rawCart); grouped = groupCart(rawCart); renderCart(); updateCartBadge(); } catch (e) { document.getElementById('loading').innerHTML = '<div class="text-danger">Failed to load cart</div>'; } } function renderCart() { const loading = document.getElementById('loading'); const empty = document.getElementById('emptyState'); const itemsDiv = document.getElementById('items'); const summary = document.getElementById('summary'); const impact = document.getElementById('impact'); loading.style.display = 'none'; const entries = Object.values(grouped); if (!entries.length) { empty.style.display = 'block'; itemsDiv.innerHTML = ''; summary.style.display = 'none'; impact.style.display = 'none'; updateSummary(); return; } empty.style.display = 'none'; summary.style.display = 'block'; impact.style.display = 'block'; itemsDiv.innerHTML = entries.map(x => ` <div class="cart-item"> <div class="row align-items-center"> <div class="col-md-2 text-center"> <img src="${x.image_url}" class="product-image" alt="${x.title}" onclick="openProduct(${x.product_id})"> </div> <div class="col-md-6"> <div class="fw-semibold">${x.title}</div> <div class="text-muted small">$${x.price.toFixed(2)}</div> </div> <div class="col-md-2 text-center"> <div class="btn-group" role="group"> <button class="btn btn-outline-secondary qty-btn" onclick="decQty(${x.product_id})">−</button> <button class="btn btn-light qty-btn" disabled>${x.qty}</button> <button class="btn btn-outline-secondary qty-btn" onclick="incQty(${x.product_id})">+</button> </div> </div> <div class="col-md-2 text-end"> <div class="h6 mb-0">$${(x.price * x.qty).toFixed(2)}</div> </div> </div> </div> `).join(''); updateSummary(); } function updateSummary() { const list = Object.values(grouped); const qty = list.reduce((s, x) => s + x.qty, 0); const subtotal = list.reduce((s, x) => s + x.price * x.qty, 0); const tax = subtotal * 0.08; const total = subtotal + tax; document.getElementById('sumQty').textContent = qty; document.getElementById('sumSubtotal').textContent = `$${subtotal.toFixed(2)}`; document.getElementById('sumTax').textContent = `$${tax.toFixed(2)}`; document.getElementById('sumTotal').textContent = `$${total.toFixed(2)}`; } async function incQty(product_id) { const u = getCurrentUser(); if (!u) { showToast('Login first','warning'); return; } try { await apiCall('/cart/add', { method: 'POST', body: JSON.stringify({ user_id: u.id, product_id }) }); await loadCart(); } catch (e) { showToast('Failed to add item', 'error'); } } async function decQty(product_id) { const ids = indexByProduct[product_id] || []; if (!ids.length) return; const rowId = ids.pop(); try { await apiCall(`/cart/item/${rowId}`, { method: 'DELETE' }); await loadCart(); } catch (e) { showToast('Failed to remove item', 'error'); } } async function clearCart() { const u = getCurrentUser(); if (!u) { showToast('Login first','warning'); return; } if (!confirm('Clear all items from your cart?')) return; try { await apiCall(`/cart/clear?user_id=${u.id}`, { method: 'DELETE' }); await loadCart(); updateCartBadge(); showToast('Cart cleared','success'); } catch (e) { showToast('Failed to clear cart','error'); } } async function purchaseAll() { const u = getCurrentUser(); if (!u) { showToast('Login first','warning'); return; } const btn = document.getElementById('purchaseBtn'); btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...'; try { await apiCall('/purchase', { method: 'POST', body: JSON.stringify({ user_id: u.id }) }); showToast('Purchase successful!', 'success'); await loadCart(); updateCartBadge(); setTimeout(()=> window.location.href='purchases.html', 800); } catch (e) { showToast('Purchase failed', 'error'); } finally { btn.disabled = false; btn.innerHTML = '<i class="bi bi-credit-card"></i> Purchase All'; } } function openProduct(id){ window.location.href = `product.html?id=${id}`; } document.addEventListener('DOMContentLoaded', () => { initializePage(); loadCart(); }); </script> </body> </html>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        if (!getCurrentUser()) {
+            window.location.href = 'auth.html';
+        }
+
+        async function loadCart() {
+            try {
+                // Secure call implicitly uses JWT
+                const data = await apiCall('/cart/');
+                document.getElementById('loadingCart').classList.add('d-none');
+                
+                if (data.results.length === 0) {
+                    document.getElementById('emptyCart').classList.remove('d-none');
+                    document.getElementById('cartContent').classList.add('d-none');
+                    return;
+                }
+
+                document.getElementById('emptyCart').classList.add('d-none');
+                document.getElementById('cartContent').classList.remove('d-none');
+                
+                let subtotal = 0;
+                let co2Total = 0;
+
+                const itemsList = document.getElementById('cartItemsList');
+                itemsList.innerHTML = data.results.map(item => {
+                    subtotal += item.price;
+                    // Mock CO2 for display if backend didn't join it into cart results
+                    // My cart endpoint returns title, price, image. Let's assume 15kg for UI
+                    const itemCo2 = 15; 
+                    co2Total += itemCo2;
+
+                    return `
+                    <div class="cart-item-card d-flex flex-column flex-md-row position-relative" id="item-${item.cart_item_id}">
+                        <img src="${item.image_url}" class="cart-item-img" alt="${item.title}">
+                        <div class="p-3 p-md-4 w-100 d-flex flex-column justify-content-between">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="fw-bold mb-1"><a href="product.html?id=${item.product_id}" class="text-dark text-decoration-none">${item.title}</a></h5>
+                                    <span class="text-success small fw-medium"><i class="bi bi-cloud-check me-1"></i> Saves ${itemCo2}kg CO₂</span>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">$${item.price.toFixed(2)}</h5>
+                            </div>
+                            <div class="text-end mt-3 mt-md-0">
+                                <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="removeFromCart(${item.cart_item_id})">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `}).join('');
+
+                document.getElementById('itemCount').textContent = data.results.length;
+                document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('total').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('co2Total').textContent = `${co2Total} kg CO₂`;
+
+            } catch (error) {
+                showToast('Error loading cart', 'error');
+                document.getElementById('loadingCart').classList.add('d-none');
+            }
+        }
+
+        async function removeFromCart(cartItemId) {
+            try {
+                await apiCall(`/cart/${cartItemId}`, { method: 'DELETE' });
+                document.getElementById(`item-${cartItemId}`).remove();
+                showToast('Item removed', 'success');
+                loadCart(); // Refresh totals
+                updateCartBadge();
+            } catch (error) {
+                showToast('Error removing item', 'error');
+            }
+        }
+
+        async function proceedToCheckout() {
+            const btn = document.getElementById('btnCheckout');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing securely...';
+
+            try {
+                // Mock delay for UI Wow factor
+                await new Promise(r => setTimeout(r, 1500));
+                
+                const res = await apiCall('/orders/checkout', { method: 'POST' });
+                showToast(res.message, 'success');
+                
+                setTimeout(() => {
+                    window.location.href = 'purchases.html';
+                }, 1500);
+
+            } catch (error) {
+                showToast(error.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Secure Checkout <i class="bi bi-lock-fill ms-1"></i>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePage();
+            loadCart();
+        });
+    </script>
+</body>
+</html>

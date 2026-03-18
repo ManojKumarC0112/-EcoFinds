@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFinds - Secure Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .auth-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow: hidden;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        .auth-header {
+            background: linear-gradient(135deg, #198754, #20c997);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .otp-input {
+            letter-spacing: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        #step2 { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Back to home -->
+    <a href="index.html" class="position-absolute top-0 start-0 m-4 text-decoration-none text-muted">
+        <i class="bi bi-arrow-left"></i> Back to EcoFinds
+    </a>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <i class="bi bi-shield-lock display-4 mb-3"></i>
+                        <h3 class="mb-0">Welcome</h3>
+                        <p class="text-white-50 mt-1 mb-0">Sign in or create an account</p>
+                    </div>
+                    
+                    <div class="p-4 p-md-5">
+                        <!-- Step 1: Identifier -->
+                        <div id="step1">
+                            <form id="sendOtpForm" onsubmit="handleSendOtp(event)">
+                                <div class="mb-4">
+                                    <label class="form-label text-muted scale-125">Email or Phone Number</label>
+                                    <input type="text" class="form-control form-control-lg bg-light" id="identifier" placeholder="e.g. jane@example.com" required>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm" id="btnSend">
+                                    Continue <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Step 2: OTP Entry -->
+                        <div id="step2">
+                            <p class="text-center text-muted mb-4">We've sent a 6-digit code to <br><strong id="displayIdentifier" class="text-dark"></strong></p>
+                            <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)">
+                                <div class="mb-4">
+                                    <input type="text" class="form-control form-control-lg bg-light otp-input" id="otpCode" placeholder="••••••" maxlength="6" pattern="[0-9]{6}" required autocomplete="off">
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm" id="btnVerify">
+                                    Secure Log In
+                                </button>
+                                <div class="text-center mt-3">
+                                    <button type="button" class="btn btn-link text-muted text-decoration-none btn-sm" onclick="window.location.reload()">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        // Redirect if already logged in
+        if(getCurrentUser()) {
+            window.location.href = 'index.html';
+        }
+
+        let currentIdentifier = '';
+
+        async function handleSendOtp(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value.trim();
+            const btn = document.getElementById('btnSend');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Sending...';
+            
+            try {
+                const res = await apiCall('/auth/send-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({ identifier })
+                });
+                
+                showToast(res.message, 'success');
+                // Auto-fill OTP for testing ease (since we have no real email setup)
+                document.getElementById('otpCode').value = res.mock_otp_for_testing;
+                
+                currentIdentifier = identifier;
+                document.getElementById('displayIdentifier').textContent = identifier;
+                
+                // Switch forms
+                document.getElementById('step1').style.display = 'none';
+                document.getElementById('step2').style.display = 'block';
+                document.getElementById('otpCode').focus();
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Continue <i class="bi bi-arrow-right ms-2"></i>';
+            }
+        }
+
+        async function handleVerifyOtp(e) {
+            e.preventDefault();
+            const otpCode = document.getElementById('otpCode').value.trim();
+            const btn = document.getElementById('btnVerify');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Verifying...';
+            
+            try {
+                const res = await apiCall('/auth/verify-otp', {
+                    method: 'POST',
+                    body: JSON.stringify({ identifier: currentIdentifier, otp: otpCode })
+                });
+                
+                // Store JWT and User
+                setCurrentUser(res.user, res.token);
+                showToast('Welcome back!', 'success');
+                
+                // Redirect immediately
+                setTimeout(() => window.location.href = 'index.html', 1000);
+            } catch (err) {
+                showToast(err.message, 'error');
+                btn.disabled = false;
+                btn.innerHTML = 'Secure Log In';
+            }
+        }
+    </script>
+</body>
+</html>

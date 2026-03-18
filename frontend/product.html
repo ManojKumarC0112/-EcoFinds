@@ -1,78 +1,223 @@
- <html lang="en"> 
-<head> 
-  <meta charset="UTF-8"> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>Product - EcoFinds</title> 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet"> 
-  <style> 
-    .navbar-brand{font-weight:bold;color:#198754!important} 
-    .thumb{width:100%;height:320px;object-fit:cover;border-radius:12px} 
-  </style> 
-</head> 
-<body> 
-  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm"> 
-    <div class="container"> 
-      <a class="navbar-brand" href="index.html"><i class="bi bi-recycle"></i> EcoFinds</a> 
-      <div class="ms-auto"> 
-        <a class="nav-link d-inline" href="cart.html"><i class="bi bi-cart3"></i> Cart <span id="cartBadge" class="badge bg-danger" style="display:none">0</span></a> 
-      </div> 
-    </div> 
-  </nav> 
-  <div class="container py-4" id="content"> 
-    <div class="text-center py-5 text-muted">Loading product...</div> 
-  </div> 
-  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div> 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> 
-  <script src="js/common.js"></script> 
-  <script> 
-    async function loadProduct(){ 
-      const id = new URLSearchParams(location.search).get('id'); 
-      if(!id){ 
-        document.getElementById('content').innerHTML='<div class="text-center text-danger py-5">Invalid product</div>'; 
-        return; 
-      } 
-      try{ 
-        const d = await apiCall(`/products/${id}`); 
-        const p = d.product; 
-        updateCartBadge(); 
-        document.getElementById('content').innerHTML = ` 
-          <div class='row g-4'> 
-            <div class='col-lg-6'> 
-              <img src='${p.image_url}' class='thumb' alt='${p.title}'> 
-            </div> 
-            <div class='col-lg-6'> 
-              <h3>${p.title}</h3> 
-              <div class='text-muted mb-2'>${p.category}</div> 
-              <div class='h4 text-success'>$${p.price}</div> 
-              <p class='mt-3'>${p.description||'No description'}</p> 
-              <div class='d-flex gap-2 mt-3'> 
-                <button class='btn btn-primary' onclick='addToCart(${p.id})'><i class="bi bi-cart-plus"></i> Add to Cart</button> 
-                <a href='index.html' class='btn btn-outline-secondary'>Back</a> 
-              </div> 
-            </div> 
-          </div>`; 
-      }catch(e){ 
-        document.getElementById('content').innerHTML='<div class="text-center text-danger py-5">Product not found</div>'; 
-      } 
-    } 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoFinds - Product Detail</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
     
-    async function addToCart(pid){ 
-      const u = getCurrentUser(); 
-      if(!u){ 
-        showToast('Login first','warning'); 
-        return; 
-      } 
-      try{ 
-        await apiCall('/cart/add',{method:'POST',body:JSON.stringify({user_id:u.id, product_id:pid})}); 
-        showToast('Added to cart','success'); 
-        updateCartBadge(); 
-      } catch(e){ 
-        showToast(e.message,'error'); 
-      } 
-    } 
-    
-    document.addEventListener('DOMContentLoaded', loadProduct); 
-  </script> 
-</body> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --eco-green: #059669; --bg: #f9fafb; --surface: #ffffff; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); padding-top: 90px; }
+        
+        .navbar { background: rgba(255, 255, 255, 0.9)!important; backdrop-filter: blur(10px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .navbar-brand { font-weight: 700; color: var(--eco-green) !important; font-size: 1.5rem; }
+        .cart-badge { background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: 0px; right: -5px; }
+
+        .product-container { background: var(--surface); border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04); padding: 30px; margin-bottom: 40px; }
+        
+        /* Custom Carousel */
+        .carousel-inner { border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: #f8f9fa; }
+        .carousel-item img { height: 500px; object-fit: cover; width: 100%; transition: transform 0.5s; }
+        .carousel-item img:hover { transform: scale(1.02); }
+        
+        .co2-stat-card {
+            background: linear-gradient(135deg, rgba(5,150,105,0.1), rgba(16,185,129,0.05));
+            border: 1px solid rgba(5,150,105,0.2);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .review-card { background: var(--bg); border: none; border-radius: 16px; padding: 20px; margin-bottom: 15px; }
+        .stars { color: #fbbf24; }
+        
+        /* Skeletons */
+        .skeleton { background: linear-gradient(110deg, #ececec 8%, #f5f5f5 18%, #ececec 33%); background-size: 200% 100%; animation: 1.5s shine linear infinite; border-radius: 8px; }
+        @keyframes shine { to { background-position-x: -200%; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top py-3 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <i class="bi bi-arrow-left me-2 text-dark fs-4"></i> <span class="d-none d-md-inline text-dark fs-5 fw-medium">Back</span>
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <a class="nav-link position-relative me-4" href="cart.html">
+                    <i class="bi bi-cart3 fs-4 text-dark"></i>
+                    <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Skeleton Loading State -->
+        <div id="loadingState" class="product-container row g-5">
+            <div class="col-md-6">
+                <div class="skeleton" style="height: 500px; border-radius: 20px;"></div>
+            </div>
+            <div class="col-md-6">
+                <div class="skeleton mb-3" style="height: 40px; width: 80%;"></div>
+                <div class="skeleton mb-4" style="height: 25px; width: 40%;"></div>
+                <div class="skeleton mb-2" style="height: 15px; width: 100%;"></div>
+                <div class="skeleton mb-2" style="height: 15px; width: 100%;"></div>
+                <div class="skeleton mb-5" style="height: 15px; width: 70%;"></div>
+                <div class="skeleton" style="height: 60px; width: 100%; border-radius: 30px;"></div>
+            </div>
+        </div>
+
+        <!-- Real Content -->
+        <div id="productContent" style="display: none;">
+            <div class="product-container row g-5 align-items-start">
+                
+                <!-- Left: Multiple Image Carousel -->
+                <div class="col-md-6 position-relative">
+                    <div id="productCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                        <div class="carousel-inner" id="carouselInner"></div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon bg-dark rounded-circle p-3 shadow" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon bg-dark rounded-circle p-3 shadow" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Info -->
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-dark text-white px-3 py-2 rounded-pill me-2" id="pCategory">Category</span>
+                        <div class="stars fs-5" id="pRating"></div>
+                        <span class="text-muted ms-2 small" id="pReviewCount">(0 Reviews)</span>
+                    </div>
+                    
+                    <h1 class="display-5 fw-bold mb-3 text-dark" id="pTitle">Product Title</h1>
+                    <h2 class="text-success fw-bold mb-4 display-6" id="pPrice">$0.00</h2>
+
+                    <div class="co2-stat-card mb-4 d-flex align-items-center">
+                        <div class="bg-white p-3 rounded-circle me-3 shadow-sm d-flex align-items-center justify-content-center">
+                            <i class="bi bi-tree fs-3 text-success"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">Eco Impact</h5>
+                            <p class="mb-0 text-muted">Buying this saves an estimated <strong class="text-success" id="pCo2">0kg</strong> of CO₂ compared to buying new.</p>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-3">Description</h5>
+                    <p class="text-muted lead fs-6" style="line-height: 1.8;" id="pDesc">Description goes here.</p>
+
+                    <div class="d-flex align-items-center text-muted small mb-4">
+                        <i class="bi bi-person-circle fs-4 me-2"></i>
+                        <span class="fw-medium text-dark me-1" id="pOwner">Seller Name</span> • Listed on <span id="pDate">Date</span>
+                    </div>
+
+                    <button class="btn btn-dark btn-lg w-100 rounded-pill py-3 fw-bold shadow-lg" id="btnAddToCart">
+                        <i class="bi bi-bag-plus me-2"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Reviews Section -->
+            <div class="row mt-5 mb-5">
+                <div class="col-md-8 mx-auto">
+                    <h3 class="fw-bold mb-4">Customer Reviews</h3>
+                    <div id="reviewsContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        let currentProductId = null;
+
+        function getStarsHTML(rating) {
+            let html = '';
+            for(let i=1; i<=5; i++) {
+                html += `<i class="bi bi-star${i <= rating ? '-fill' : ''}"></i>`;
+            }
+            return html;
+        }
+
+        async function loadProductDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            currentProductId = productId;
+
+            if (!productId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const data = await apiCall(`/products/${productId}`);
+                const p = data.product;
+
+                // Populate Carousel
+                const cInner = document.getElementById('carouselInner');
+                cInner.innerHTML = p.images.map((imgUrl, i) => `
+                    <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                        <img src="${imgUrl}" alt="${p.title}">
+                    </div>
+                `).join('');
+
+                // Populate Text Info
+                document.getElementById('pTitle').textContent = p.title;
+                document.getElementById('pPrice').textContent = `$${p.price.toFixed(2)}`;
+                document.getElementById('pDesc').textContent = p.description || 'No description provided.';
+                document.getElementById('pCategory').textContent = p.category;
+                document.getElementById('pOwner').textContent = p.owner_name;
+                document.getElementById('pCo2').textContent = `${p.co2_saved_kg}kg`;
+                document.getElementById('pDate').textContent = new Date(p.created_at).toLocaleDateString();
+                
+                // Ratings
+                document.getElementById('pRating').innerHTML = getStarsHTML(Math.round(p.average_rating));
+                document.getElementById('pReviewCount').textContent = `(${p.review_count} Reviews)`;
+
+                // Reviews List
+                const rContainer = document.getElementById('reviewsContainer');
+                if (p.recent_reviews && p.recent_reviews.length > 0) {
+                    rContainer.innerHTML = p.recent_reviews.map(r => `
+                        <div class="review-card">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong class="text-dark">${r.user}</strong>
+                                <span class="text-muted small">${new Date(r.date).toLocaleDateString()}</span>
+                            </div>
+                            <div class="stars mb-2 fs-6">${getStarsHTML(r.rating)}</div>
+                            <p class="mb-0 text-muted">${r.comment}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    rContainer.innerHTML = `<p class="text-muted fst-italic">No reviews yet. Be the first after purchasing!</p>`;
+                }
+
+                // Attach Cart Event
+                document.getElementById('btnAddToCart').onclick = () => addToCartGlobal(p.id);
+
+                // UI Swap
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('productContent').style.display = 'block';
+
+            } catch (error) {
+                showToast('Failed to load product details.', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializePage();
+            loadProductDetails();
+        });
+    </script>
+</body>
 </html>

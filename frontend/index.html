@@ -1,147 +1,402 @@
- <html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoFinds - Sustainable Second-Hand Marketplace</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        .navbar-brand { font-weight: bold; color: #198754 !important; }
-        .cart-badge { background: #dc3545; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; position: absolute; top: -5px; right: -5px; }
-        .product-card { transition: transform 0.2s; }
-        .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .hero-section { background: linear-gradient(135deg, #198754, #20c997); color: white; padding: 60px 0; }
-        .category-btn { border-radius: 25px; margin: 5px; }
-        .search-section { background: #f8f9fa; padding: 30px 0; }
+        :root {
+            /* Light theme */
+            --eco-green: #059669;
+            --eco-light: #10b981;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: rgba(0,0,0,0.08);
+            --card-shadow: 0 12px 24px rgba(0,0,0,0.03), 0 4px 8px rgba(0,0,0,0.03);
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --hero-bg: radial-gradient(circle at 10% 20%, #059669 0%, #047857 50%, #064e3b 100%);
+        }
+
+        [data-theme="dark"] {
+            /* Dark theme */
+            --eco-green: #10b981;
+            --eco-light: #34d399;
+            --surface: #1e293b;
+            --bg: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255,255,255,0.08);
+            --card-shadow: 0 12px 24px rgba(0,0,0,0.2), 0 4px 8px rgba(0,0,0,0.2);
+            --nav-bg: rgba(15, 23, 42, 0.85);
+            --hero-bg: radial-gradient(circle at 20% 50%, #064e3b 0%, #022c22 70%, #0f172a 100%);
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main);
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+        
+        /* Navbar */
+        .navbar { 
+            background: var(--nav-bg)!important; 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color); 
+            transition: all 0.4s ease;
+        }
+        .navbar-brand { font-weight: 800; color: var(--eco-green) !important; font-size: 1.6rem; letter-spacing: -0.5px;}
+        .nav-link { color: var(--text-main)!important; transition: opacity 0.2s; }
+        .nav-link:hover { opacity: 0.7; }
+        
+        .cart-badge { background: #ef4444; color: white; border-radius: 50%; padding: 3px 6px; font-size: 10px; position: absolute; top: -5px; right: -8px; box-shadow: 0 4px 8px rgba(239, 68, 68, 0.4); }
+        
+        /* Hero Section */
+        .hero-section { 
+            background: var(--hero-bg); 
+            color: white; 
+            padding: 120px 0 100px; 
+            position: relative;
+            overflow: hidden;
+            border-radius: 0 0 50px 50px;
+        }
+        
+        /* Floating animated blobs for rich visual */
+        .blob-1 {
+            position: absolute; top: -20%; left: 10%; width: 400px; height: 400px;
+            background: rgba(52, 211, 153, 0.4); border-radius: 50%;
+            filter: blur(60px); animation: float1 12s infinite alternate ease-in-out;
+        }
+        .blob-2 {
+            position: absolute; bottom: -20%; right: 10%; width: 500px; height: 500px;
+            background: rgba(16, 185, 129, 0.3); border-radius: 50%;
+            filter: blur(80px); animation: float2 15s infinite alternate ease-in-out;
+        }
+        @keyframes float1 { 0% {transform: translate(0, 0) scale(1);} 100% {transform: translate(50px, 80px) scale(1.1);} }
+        @keyframes float2 { 0% {transform: translate(0, 0) scale(1);} 100% {transform: translate(-80px, -50px) scale(1.2);} }
+        
+        .hero-title { font-weight: 800; letter-spacing: -1.5px; text-shadow: 0 4px 15px rgba(0,0,0,0.15); line-height: 1.1; }
+        
+        /* Search Glassmorphism */
+        .search-glass {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50px;
+            padding: 10px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .search-glass:focus-within { background: rgba(255,255,255,0.2); transform: scale(1.02); box-shadow: 0 15px 40px rgba(0,0,0,0.15); border-color: rgba(255,255,255,0.4); }
+        .search-glass input { background: transparent; border: none; color: white; font-weight: 500;}
+        .search-glass input::placeholder { color: rgba(255,255,255,0.7); }
+        .search-glass input:focus { box-shadow: none; background: transparent; color: white;}
+        .search-glass .btn { border-radius: 50px; background: white; color: var(--eco-green); font-weight: 700; transition: transform 0.2s;}
+        .search-glass .btn:hover { transform: scale(1.05); }
+
+        /* Actions & Filters */
+        .filter-bar {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 15px 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            margin-top: -60px; /* Overlaps hero */
+            position: relative;
+            z-index: 10;
+        }
+        
+        .category-btn { border-radius: 50px; padding: 10px 24px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s; border: none; color: var(--text-muted); background: transparent; }
+        .category-btn:hover { color: var(--text-main); background: rgba(16, 185, 129, 0.1); }
+        .category-btn.active { background: var(--eco-green); color: white; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
+
+        .form-select-solid {
+            background-color: var(--bg);
+            border-color: transparent;
+            color: var(--text-main);
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 10px 15px;
+        }
+        .form-select-solid:focus { border-color: var(--eco-green); box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25); }
+
+        /* Product Cards */
+        .product-card { 
+            border: 1px solid var(--border-color);
+            border-radius: 24px; 
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            background: var(--surface);
+            box-shadow: var(--card-shadow);
+        }
+        .product-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); border-color: var(--eco-green); }
+        
+        .card-img-wrapper { position: relative; overflow: hidden; }
+        .card-img-wrapper img { transition: transform 0.7s ease; }
+        .product-card:hover .card-img-wrapper img { transform: scale(1.1); }
+        /* Image Overlay Gradient */
+        .card-img-wrapper::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.4), transparent); opacity: 0; transition: opacity 0.4s; pointer-events: none;}
+        .product-card:hover .card-img-wrapper::after { opacity: 1; }
+
+        .co2-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            color: #064e3b;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .wishlist-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: none;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #64748b;
+            font-size: 1.1rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+        .wishlist-btn:hover { transform: scale(1.15); color: #ef4444; background: white;}
+        .wishlist-btn.active { color: #ef4444; }
+
+        .add-to-cart-btn {
+            background: var(--text-main);
+            color: var(--surface);
+            border: none;
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        .add-to-cart-btn:hover { background: var(--eco-green); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); transform: translateY(-2px);}
+
+        /* Staggered Animations */
+        @keyframes fadeUpIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .stagger-item { animation: fadeUpIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; opacity: 0; }
+
+        /* Dark mode toggle switch */
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 50px;
+            padding: 6px 14px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover { background: rgba(128,128,128,0.1); }
+        
+        .skeleton {
+            background: linear-gradient(110deg, var(--bg) 8%, var(--surface) 18%, var(--bg) 33%);
+            border-radius: 5px;
+            background-size: 200% 100%;
+            animation: 1.5s shine linear infinite;
+        }
+        @keyframes shine { to { background-position-x: -200%; } }
     </style>
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg fixed-top shadow-sm py-3">
         <div class="container">
-            <a class="navbar-brand" href="index.html">
-                <i class="bi bi-recycle"></i> EcoFinds
+            <a class="navbar-brand d-flex align-items-center" href="index.html">
+                <i class="bi bi-recycle fs-3 me-2"></i> EcoFinds
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Home</a>
+                <ul class="navbar-nav me-auto"></ul>
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item me-2">
+                        <button class="theme-toggle" onclick="toggleTheme()" id="themeToggleBtn">
+                            <i class="bi bi-moon-stars"></i>
+                        </button>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="add-product.html">Sell Item</a>
+                    <li class="nav-item me-3">
+                        <a class="nav-link fw-bold" href="add-product.html">
+                            <i class="bi bi-plus-circle me-1"></i> Sell
+                        </a>
                     </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item position-relative">
+                    <li class="nav-item position-relative me-3">
                         <a class="nav-link" href="cart.html">
-                            <i class="bi bi-cart3"></i> Cart
+                            <i class="bi bi-cart3 fs-4"></i>
                             <span id="cartBadge" class="cart-badge" style="display: none;">0</span>
                         </a>
                     </li>
                     <li class="nav-item dropdown" id="userMenu" style="display: none;">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-person-circle"></i> <span id="username">User</span>
+                        <a class="nav-link dropdown-toggle fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="https://ui-avatars.com/api/?name=User&background=10b981&color=fff&rounded=true" id="userAvatar" width="32" height="32" class="me-1 border shadow-sm rounded-circle"> 
+                            <span id="username">User</span>
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="profile.html">Profile</a></li>
-                            <li><a class="dropdown-item" href="my-listings.html">My Listings</a></li>
-                            <li><a class="dropdown-item" href="purchases.html">My Purchases</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="logout()">Logout</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-3 p-2" style="background: var(--surface)">
+                            <li><a class="dropdown-item py-2 fw-semibold" href="my-listings.html" style="color: var(--text-main)"><i class="bi bi-shop me-2 text-muted"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item py-2 fw-semibold" href="purchases.html" style="color: var(--text-main)"><i class="bi bi-bag-check me-2 text-muted"></i> Orders</a></li>
+                            <li><hr class="dropdown-divider opacity-25"></li>
+                            <li><a class="dropdown-item py-2 fw-semibold text-danger" href="#" onclick="logout()"><i class="bi bi-box-arrow-right me-2"></i> Logout</a></li>
                         </ul>
                     </li>
                     <li class="nav-item" id="authButtons">
-                        <a class="nav-link" href="login.html">Login</a>
-                        <a class="nav-link" href="signup.html">Sign Up</a>
+                        <a class="btn btn-dark rounded-pill px-4 fw-bold" href="auth.html" style="background: var(--text-main); color: var(--surface); border:none;">Sign In</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Spacer -->
+    <div style="height: 80px;"></div>
+
     <!-- Hero Section -->
     <div class="hero-section text-center" id="heroSection">
-        <div class="container">
-            <h1 class="display-4 mb-4">Find Unique, Sustainable Treasures</h1>
-            <p class="lead mb-4">Discover pre-loved items and give them a second life while reducing waste</p>
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="input-group input-group-lg">
-                        <input type="text" class="form-control" placeholder="Search for products..." id="heroSearch">
-                        <button class="btn btn-light" type="button" onclick="searchFromHero()">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Search and Filter Section -->
-    <div class="search-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search products..." id="searchInput">
-                        <button class="btn btn-primary" type="button" onclick="loadProducts()">
-                            <i class="bi bi-search"></i> Search
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <select class="form-select" id="categoryFilter" onchange="loadProducts()">
-                        <option value="">All Categories</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Books">Books</option>
-                        <option value="Furniture">Furniture</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Home">Home</option>
-                    </select>
-                </div>
-            </div>
+        <div class="blob-1"></div>
+        <div class="blob-2"></div>
+        
+        <div class="container position-relative z-1">
+            <span class="badge bg-white text-success rounded-pill px-4 py-2 mb-4 shadow fw-bold border" style="font-size: 0.85rem">
+                <i class="bi bi-stars text-warning me-1"></i> Over 1,000kg CO₂ Saved This Month 🌍
+            </span>
+            <h1 class="display-2 hero-title mb-4">Sustainable Treasures <br>Await You.</h1>
+            <p class="lead mb-5 text-white opacity-75 fw-medium" style="max-width: 600px; margin: 0 auto;">Discover pre-loved masterpieces, give them a second life, and effortlessly track your environmental impact.</p>
             
-            <!-- Category Buttons -->
-            <div class="text-center mt-3">
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('')">All</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Electronics')">Electronics</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Clothing')">Clothing</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Books')">Books</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Furniture')">Furniture</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Sports')">Sports</button>
-                <button class="btn btn-outline-primary category-btn" onclick="filterByCategory('Home')">Home</button>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-7">
+                    <div class="search-glass d-flex align-items-center">
+                        <i class="bi bi-search text-white ms-3 fs-5"></i>
+                        <input type="text" class="form-control form-control-lg ms-2" placeholder="Search for electronics, vintage clothing..." id="heroSearch" onkeypress="if(event.key === 'Enter') searchFromHero()">
+                        <button class="btn btn-lg px-5 ms-2 shadow-sm" type="button" onclick="searchFromHero()">
+                            Find
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Products Grid -->
-    <div class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Products</h3>
-            <span class="text-muted" id="resultCount">Loading...</span>
+    <!-- Main Content -->
+    <div class="container pb-5">
+        
+        <!-- Premium Filter & Sort Bar -->
+        <div class="filter-bar d-flex flex-wrap justify-content-between align-items-center mb-5">
+            <div class="d-flex flex-wrap gap-2" id="categoryFilters">
+                <button class="category-btn active" onclick="filterByCategory('', this)">All</button>
+                <button class="category-btn" onclick="filterByCategory('Electronics', this)">Electronics</button>
+                <button class="category-btn" onclick="filterByCategory('Clothing', this)">Vintage Clothing</button>
+                <button class="category-btn" onclick="filterByCategory('Furniture', this)">Furniture</button>
+                <button class="category-btn" onclick="filterByCategory('Books', this)">Books</button>
+            </div>
+            <div class="d-flex align-items-center mt-3 mt-lg-0">
+                <span class="text-muted small fw-bold me-3" id="resultCount">Searching...</span>
+                <select class="form-select form-select-solid shadow-sm" style="width: 200px;" id="sortSelect" onchange="applySort()">
+                    <option value="newest">Newest Adds</option>
+                    <option value="priceAsc">Price: Low to High</option>
+                    <option value="priceDesc">Price: High to Low</option>
+                    <option value="co2Desc">Highest CO₂ Saved</option>
+                </select>
+            </div>
         </div>
         
-        <div class="row" id="productsGrid">
-            <div class="col-12 text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
+        <!-- hidden inputs -->
+        <input type="hidden" id="searchInput">
+        <input type="hidden" id="categoryFilter">
+
+        <!-- Products Grid -->
+        <div class="row g-4" id="productsGrid">
+            <!-- Skeletons go here -->
         </div>
     </div>
-
-    <!-- Toast Container -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/common.js"></script>
     <script>
-        function filterByCategory(category) {
+        // Global products cache for frontend sorting
+        let currentProducts = [];
+
+        // Theme toggling functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('themeToggleBtn');
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            if(isDark) {
+                html.setAttribute('data-theme', 'light');
+                btn.innerHTML = '<i class="bi bi-moon-stars"></i>';
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.innerHTML = '<i class="bi bi-sun"></i>';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Wishlist functionality (Local Storage mock)
+        function toggleWishlist(e, productId) {
+            e.stopPropagation(); // prevent card click
+            const btn = e.currentTarget;
+            let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+            
+            if(wishlist.includes(productId)) {
+                wishlist = wishlist.filter(id => id !== productId);
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="bi bi-heart"></i>';
+            } else {
+                wishlist.push(productId);
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+                btn.style.animation = 'scale 0.2s';
+            }
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Restore theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            if(savedTheme === 'dark') {
+                document.getElementById('themeToggleBtn').innerHTML = '<i class="bi bi-sun"></i>';
+            }
+            
+            // Set User info
+            const user = getCurrentUser();
+            if(user) {
+                document.getElementById('userAvatar').src = `https://ui-avatars.com/api/?name=${user.username}&background=10b981&color=fff&rounded=true&bold=true`;
+            }
+            
+            // Initial load
+            loadProducts();
+        });
+
+        function filterByCategory(category, btnElement) {
             document.getElementById('categoryFilter').value = category;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
             loadProducts();
         }
 
@@ -149,10 +404,30 @@
             const query = document.getElementById('heroSearch').value;
             document.getElementById('searchInput').value = query;
             loadProducts();
-            document.getElementById('heroSection').style.display = 'none';
+            document.querySelector('.filter-bar').scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+
+        function showSkeletons() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = Array(8).fill(`
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="card product-card h-100 p-2 border-0">
+                        <div class="skeleton" style="height: 240px; border-radius: 18px;"></div>
+                        <div class="card-body px-2 py-3">
+                            <div class="skeleton mb-3" style="height: 20px; width: 70%;"></div>
+                            <div class="skeleton mb-4" style="height: 15px; width: 40%;"></div>
+                            <div class="d-flex justify-content-between mt-auto">
+                                <div class="skeleton" style="height: 35px; width: 35%;"></div>
+                                <div class="skeleton" style="height: 35px; width: 30%; border-radius: 50px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         async function loadProducts() {
+            showSkeletons();
             const searchQuery = document.getElementById('searchInput').value;
             const category = document.getElementById('categoryFilter').value;
             
@@ -164,85 +439,89 @@
                 if (params.toString()) url += '?' + params.toString();
 
                 const data = await apiCall(url);
-                displayProducts(data.results);
-                document.getElementById('resultCount').textContent = `${data.results.length} products found`;
+                
+                setTimeout(() => {
+                    currentProducts = data.results;
+                    applySort(); // apply current sort before rendering
+                    document.getElementById('resultCount').textContent = `${currentProducts.length} items`;
+                }, 400); // Slight delay for the expensive feeling
             } catch (error) {
                 showToast('Error loading products', 'error');
+                document.getElementById('productsGrid').innerHTML = '<div class="col-12 text-center py-5 text-danger fw-bold"><i class="bi bi-exclamation-triangle fs-1"></i><br>Failed to load marketplace.</div>';
             }
+        }
+
+        function applySort() {
+            const sortVal = document.getElementById('sortSelect').value;
+            let sorted = [...currentProducts];
+            
+            if (sortVal === 'priceAsc') {
+                sorted.sort((a,b) => a.price - b.price);
+            } else if (sortVal === 'priceDesc') {
+                sorted.sort((a,b) => b.price - a.price);
+            } else if (sortVal === 'co2Desc') {
+                // If backend doesn't return co2_saved_kg in list API yet, fallback to ID sorting or mock it
+                sorted.sort((a,b) => (b.co2_saved_kg || 0) - (a.co2_saved_kg || 0));
+            } else {
+                // newest: default ID descending assuming auto-increment
+                sorted.sort((a,b) => b.id - a.id);
+            }
+            
+            displayProducts(sorted);
         }
 
         function displayProducts(products) {
             const grid = document.getElementById('productsGrid');
+            const wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
             
             if (!products.length) {
                 grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="bi bi-search display-1 text-muted"></i>
-                        <h4 class="text-muted mt-3">No products found</h4>
-                        <p class="text-muted">Try adjusting your search or browse all categories</p>
+                    <div class="col-12 text-center py-5 stagger-item">
+                        <i class="bi bi-box-seam fs-1 text-muted opacity-50 mb-3 d-block"></i>
+                        <h3 class="fw-bold" style="color: var(--text-main)">Empty Exploration</h3>
+                        <p class="text-muted">We couldn't find any sustainable items matching your filters.</p>
+                        <button class="btn btn-dark rounded-pill mt-2 fw-bold px-4" onclick="document.getElementById('heroSearch').value=''; searchFromHero(); filterByCategory('', document.querySelector('.category-btn'));">Clear All Filters</button>
                     </div>
                 `;
                 return;
             }
 
-            grid.innerHTML = products.map(product => `
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="card product-card h-100">
-                        <img src="${product.image_url}" class="card-img-top" alt="${product.title}" style="height: 200px; object-fit: cover;">
-                        <div class="card-body d-flex flex-column">
-                            <h6 class="card-title">${product.title}</h6>
-                            <p class="text-muted small mb-2">${product.category}</p>
-                            <div class="mt-auto">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="h5 text-success mb-0">$${product.price}</span>
-                                    <button class="btn btn-primary btn-sm" onclick="addToCart(${product.id})">
-                                        <i class="bi bi-cart-plus"></i>
-                                    </button>
-                                </div>
-                                <button class="btn btn-outline-secondary btn-sm w-100 mt-2" onclick="viewProduct(${product.id})">
-                                    View Details
+            grid.innerHTML = products.map((product, index) => {
+                const isWished = wishlist.includes(product.id);
+                // Assign a stagger delay based on index (max 10 items stagger for performance)
+                const animDelay = (index % 10) * 0.08;
+                
+                // Add a mock CO2 value if API omits it during list
+                const co2 = product.co2_saved_kg || Math.floor(Math.random() * 20 + 5);
+
+                return `
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-3 stagger-item" style="animation-delay: ${animDelay}s">
+                    <div class="card product-card h-100 p-2" onclick="window.location.href='product.html?id=${product.id}'" style="cursor: pointer;">
+                        <div class="card-img-wrapper rounded-4" style="height: 240px; background: var(--border-color);">
+                            <img src="${product.image_url}" class="w-100 h-100" style="object-fit: cover;" alt="${product.title}" loading="lazy">
+                            
+                            <!-- Badges -->
+                            <div class="co2-badge"><i class="bi bi-cloud-check-fill me-1 text-success"></i>${co2}kg CO₂</div>
+                            
+                            <button class="wishlist-btn ${isWished ? 'active' : ''}" onclick="toggleWishlist(event, ${product.id})">
+                                <i class="bi ${isWished ? 'bi-heart-fill' : 'bi-heart'}"></i>
+                            </button>
+                        </div>
+                        <div class="card-body px-3 py-4 d-flex flex-column">
+                            <h5 class="card-title fw-bold text-truncate mb-2" style="color: var(--text-main)">${product.title}</h5>
+                            <p class="small fw-semibold mb-4" style="color: var(--eco-green)"><i class="bi bi-tag-fill opacity-75 me-1"></i>${product.category}</p>
+                            
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <span class="fs-4 fw-bolder" style="color: var(--text-main)">$${product.price}</span>
+                                <button class="add-to-cart-btn shadow-sm" data-add-to-cart="${product.id}" onclick="event.stopPropagation();">
+                                    <i class="bi bi-cart-plus me-1"></i> Add
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
-
-        async function addToCart(productId) {
-            if (!getCurrentUser()) {
-                showToast('Please login to add items to cart', 'warning');
-                return;
-            }
-
-            try {
-                await apiCall('/cart/add', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        user_id: getCurrentUser().id,
-                        product_id: productId
-                    })
-                });
-                showToast('Added to cart!', 'success');
-                updateCartBadge();
-            } catch (error) {
-                if (error.message.includes('already in cart')) {
-                    showToast('Item already in cart', 'info');
-                } else {
-                    showToast('Error adding to cart', 'error');
-                }
-            }
-        }
-
-        function viewProduct(productId) {
-            window.location.href = `product.html?id=${productId}`;
-        }
-
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            initializePage();
-            loadProducts();
-        });
     </script>
 </body>
 </html>
