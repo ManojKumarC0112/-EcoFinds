@@ -1,4 +1,4 @@
-# EcoFinds V2 – The Resume Optimised Sustainable Marketplace
+# EcoFinds V2 – The Optimised Sustainable Marketplace
 
 Welcome to EcoFinds V2, radically overhauled for production readiness, smooth UX, and impressive architectural patterns.
 
